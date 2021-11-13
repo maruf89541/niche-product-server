@@ -26,7 +26,8 @@ async function run() {
         const database = client.db("garcia");
         const serviceCollection = database.collection("services");
         const orderCollection = database.collection("userBooking")
-
+        const usersCollection = database.collection("users")
+        const reviewCollection = database.collection("review")
         // //get api
         app.get('/services', async (req, res) => {
             const cusrsor = serviceCollection.find({});
@@ -76,6 +77,41 @@ async function run() {
             const result = await orderCollection.deleteOne({
                 _id: ObjectId(req.params.id),
             });
+            res.send(result);
+        });
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const result = await usersCollection.insertOne(user);
+            console.log(result);
+            res.json(result);
+        });
+        app.put("/makeAdmin", async (req, res) => {
+            const filter = { email: req.body.email };
+            const result = await usersCollection.find(filter).toArray();
+            if (result) {
+                const documents = await usersCollection.updateOne(filter, {
+                    $set: { role: "admin" },
+                });
+                console.log(documents);
+            }
+            // else {
+            //   const role = "admin";
+            //   const result3 = await usersCollection.insertOne(req.body.email, {
+            //     role: role,
+            //   });
+            // }
+
+            // console.log(result);
+        });
+        app.get("/checkAdmin/:email", async (req, res) => {
+            const result = await usersCollection
+                .find({ email: req.params.email })
+                .toArray();
+            console.log(result);
+            res.send(result);
+        });
+        app.post("/addSReview", async (req, res) => {
+            const result = await reviewCollection.insertOne(req.body);
             res.send(result);
         });
     }
